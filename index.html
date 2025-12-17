@@ -1,0 +1,2646 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CodeStore - Scraped Code Manager</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --background: #f8fafc;
+            --primary: #8b5cf6;
+            --primary-light: #a78bfa;
+            --primary-dark: #7c3aed;
+            --accent: #c4b5fd;
+            --text: #1e293b;
+            --text-light: #64748b;
+            --grid-lines: rgba(139, 92, 246, 0.1);
+            --card-bg: rgba(255, 255, 255, 0.9);
+            --card-border: rgba(139, 92, 246, 0.2);
+            --card-shadow: 0 10px 30px rgba(139, 92, 246, 0.1);
+            --success: #10b981;
+            --error: #ef4444;
+            --warning: #f59e0b;
+            --js-color: #f7df1e;
+            --python-color: #3776ab;
+            --html-color: #e34f26;
+            --css-color: #1572b6;
+            --json-color: #f5a623;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Poppins', sans-serif;
+        }
+
+        body {
+            background-color: var(--background);
+            color: var(--text);
+            min-height: 100vh;
+            position: relative;
+            overflow-x: hidden;
+            background-image: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+        }
+
+        /* Background grid with violet theme */
+        .grid-bg {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-image: 
+                linear-gradient(var(--grid-lines) 1px, transparent 1px),
+                linear-gradient(90deg, var(--grid-lines) 1px, transparent 1px);
+            background-size: 40px 40px;
+            z-index: -1;
+            opacity: 0.6;
+        }
+
+        /* Hamburger Menu */
+        .hamburger-menu {
+            display: none;
+            flex-direction: column;
+            gap: 4px;
+            cursor: pointer;
+            padding: 10px;
+            border-radius: 8px;
+            background: rgba(139, 92, 246, 0.1);
+        }
+
+        .hamburger-menu span {
+            width: 25px;
+            height: 3px;
+            background-color: var(--primary);
+            border-radius: 2px;
+            transition: 0.3s;
+        }
+
+        /* Mobile Menu */
+        .mobile-menu {
+            position: fixed;
+            top: 0;
+            right: -100%;
+            width: 280px;
+            height: 100vh;
+            background-color: rgba(255, 255, 255, 0.98);
+            backdrop-filter: blur(20px);
+            z-index: 1000;
+            padding: 100px 25px 25px;
+            transition: right 0.3s ease;
+            border-left: 1px solid var(--card-border);
+            box-shadow: -5px 0 30px rgba(139, 92, 246, 0.15);
+        }
+
+        .mobile-menu.active {
+            right: 0;
+        }
+
+        .mobile-menu ul {
+            list-style: none;
+        }
+
+        .mobile-menu li {
+            margin-bottom: 12px;
+        }
+
+        .mobile-menu a {
+            color: var(--text);
+            text-decoration: none;
+            font-size: 1.1rem;
+            font-weight: 500;
+            padding: 14px 16px;
+            display: block;
+            border-radius: 12px;
+            transition: all 0.3s ease;
+            border: 1px solid transparent;
+        }
+
+        .mobile-menu a:hover,
+        .mobile-menu a.active {
+            background: linear-gradient(135deg, rgba(139, 92, 246, 0.1), rgba(167, 139, 250, 0.05));
+            color: var(--primary);
+            border-color: var(--primary-light);
+            transform: translateX(5px);
+        }
+
+        .menu-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.3);
+            backdrop-filter: blur(3px);
+            z-index: 999;
+            display: none;
+        }
+
+        .menu-overlay.active {
+            display: block;
+        }
+
+        /* Header - White with violet accent */
+        header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 1.5rem 3rem;
+            background-color: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(20px);
+            border-bottom: 1px solid rgba(139, 92, 246, 0.15);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            box-shadow: 0 4px 20px rgba(139, 92, 246, 0.08);
+        }
+
+        .logo {
+            font-size: 1.8rem;
+            font-weight: 700;
+            color: var(--primary);
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            background: linear-gradient(135deg, var(--primary), var(--primary-light));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .logo i {
+            background: linear-gradient(135deg, var(--primary), var(--primary-light));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        nav ul {
+            display: flex;
+            list-style: none;
+            gap: 1.5rem;
+        }
+
+        nav a {
+            color: var(--text);
+            text-decoration: none;
+            font-weight: 500;
+            padding: 0.6rem 1.2rem;
+            border-radius: 10px;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        nav a::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(139, 92, 246, 0.1), transparent);
+            transition: left 0.5s;
+        }
+
+        nav a:hover::before {
+            left: 100%;
+        }
+
+        nav a:hover, nav a.active {
+            background: linear-gradient(135deg, rgba(139, 92, 246, 0.1), rgba(167, 139, 250, 0.05));
+            color: var(--primary);
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(139, 92, 246, 0.1);
+        }
+
+        .user-info {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .user-avatar {
+            width: 42px;
+            height: 42px;
+            background: linear-gradient(135deg, var(--primary), var(--primary-light));
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 600;
+            color: white;
+            border: 2px solid white;
+            box-shadow: 0 4px 12px rgba(139, 92, 246, 0.2);
+            transition: all 0.3s ease;
+        }
+
+        .user-avatar:hover {
+            transform: scale(1.1);
+            box-shadow: 0 6px 20px rgba(139, 92, 246, 0.3);
+        }
+
+        /* Main content container */
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 2.5rem 2rem;
+            min-height: calc(100vh - 180px);
+        }
+
+        .page {
+            display: none;
+            animation: fadeIn 0.5s ease;
+        }
+
+        .page.active {
+            display: block;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Login/Register Pages - White with violet accents */
+        .auth-container {
+            max-width: 480px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+
+        .auth-card {
+            background: var(--card-bg);
+            border: 1px solid var(--card-border);
+            border-radius: 20px;
+            padding: 2.5rem;
+            backdrop-filter: blur(10px);
+            box-shadow: var(--card-shadow);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .auth-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 5px;
+            background: linear-gradient(90deg, var(--primary), var(--primary-light));
+        }
+
+        .auth-header {
+            text-align: center;
+            margin-bottom: 2rem;
+        }
+
+        .auth-header h2 {
+            font-size: 2rem;
+            background: linear-gradient(135deg, var(--primary), var(--primary-light));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 0.5rem;
+        }
+
+        .auth-header p {
+            color: var(--text-light);
+            font-size: 1rem;
+        }
+
+        .auth-tabs {
+            display: flex;
+            margin-bottom: 2rem;
+            background: rgba(139, 92, 246, 0.05);
+            border-radius: 12px;
+            padding: 4px;
+            border: 1px solid rgba(139, 92, 246, 0.1);
+        }
+
+        .auth-tab {
+            flex: 1;
+            padding: 0.8rem;
+            text-align: center;
+            background: none;
+            border: none;
+            color: var(--text-light);
+            font-size: 1rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            border-radius: 10px;
+        }
+
+        .auth-tab.active {
+            background: white;
+            color: var(--primary);
+            box-shadow: 0 4px 12px rgba(139, 92, 246, 0.15);
+        }
+
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: 500;
+            color: var(--text);
+            font-size: 0.95rem;
+        }
+
+        .form-input {
+            width: 100%;
+            padding: 0.9rem 1.2rem;
+            background: white;
+            border: 2px solid rgba(139, 92, 246, 0.2);
+            border-radius: 12px;
+            color: var(--text);
+            font-size: 1rem;
+            transition: all 0.3s ease;
+        }
+
+        .form-input:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 4px rgba(139, 92, 246, 0.15);
+            transform: translateY(-2px);
+        }
+
+        .form-input::placeholder {
+            color: #94a3b8;
+        }
+
+        .form-error {
+            color: var(--error);
+            font-size: 0.85rem;
+            margin-top: 0.5rem;
+            display: none;
+            padding-left: 0.5rem;
+        }
+
+        .form-error.active {
+            display: block;
+        }
+
+        /* Home Dashboard - White cards with violet accents */
+        .welcome-section {
+            margin-bottom: 3rem;
+            text-align: center;
+            padding: 2rem;
+            background: linear-gradient(135deg, rgba(139, 92, 246, 0.05), rgba(167, 139, 250, 0.02));
+            border-radius: 20px;
+            border: 1px solid rgba(139, 92, 246, 0.1);
+        }
+
+        .welcome-section h1 {
+            font-size: 2.5rem;
+            margin-bottom: 0.5rem;
+            background: linear-gradient(135deg, var(--primary), var(--primary-light));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .welcome-section p {
+            font-size: 1.2rem;
+            color: var(--text-light);
+        }
+
+        .stats-card {
+            background: var(--card-bg);
+            border: 1px solid var(--card-border);
+            border-radius: 20px;
+            padding: 2.5rem;
+            margin-bottom: 2rem;
+            backdrop-filter: blur(10px);
+            box-shadow: var(--card-shadow);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .stats-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 8px;
+            height: 100%;
+            background: linear-gradient(to bottom, var(--primary), var(--primary-light));
+        }
+
+        .stats-card h2 {
+            font-size: 1.8rem;
+            margin-bottom: 1rem;
+            color: var(--primary);
+        }
+
+        .stats-card .total-scrape {
+            font-size: 3.5rem;
+            font-weight: 800;
+            background: linear-gradient(135deg, var(--primary), var(--primary-light));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            line-height: 1;
+        }
+
+        .stats-card p {
+            color: var(--text-light);
+            margin-top: 1rem;
+        }
+
+        .actions {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 2rem;
+            justify-content: center;
+            margin-top: 3rem;
+        }
+
+        .action-card {
+            background: var(--card-bg);
+            border: 1px solid var(--card-border);
+            border-radius: 20px;
+            padding: 2.5rem 2rem;
+            width: 320px;
+            text-align: center;
+            backdrop-filter: blur(10px);
+            transition: all 0.4s ease;
+            cursor: pointer;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .action-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(135deg, transparent, rgba(139, 92, 246, 0.03));
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
+
+        .action-card:hover::before {
+            opacity: 1;
+        }
+
+        .action-card:hover {
+            transform: translateY(-12px);
+            border-color: var(--primary-light);
+            box-shadow: 0 20px 40px rgba(139, 92, 246, 0.15);
+        }
+
+        .action-icon {
+            width: 90px;
+            height: 90px;
+            background: linear-gradient(135deg, var(--primary), var(--primary-light));
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 1.8rem;
+            font-size: 2.8rem;
+            color: white;
+            box-shadow: 0 10px 25px rgba(139, 92, 246, 0.25);
+            transition: all 0.3s ease;
+        }
+
+        .action-card:hover .action-icon {
+            transform: scale(1.1) rotate(5deg);
+            box-shadow: 0 15px 35px rgba(139, 92, 246, 0.35);
+        }
+
+        .action-card h3 {
+            font-size: 1.6rem;
+            margin-bottom: 1rem;
+            color: var(--primary);
+        }
+
+        .action-card p {
+            color: var(--text-light);
+            margin-bottom: 1.8rem;
+            line-height: 1.6;
+        }
+
+        .btn {
+            padding: 0.9rem 2.2rem;
+            background: linear-gradient(135deg, var(--primary), var(--primary-light));
+            color: white;
+            border: none;
+            border-radius: 12px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.6rem;
+            box-shadow: 0 6px 20px rgba(139, 92, 246, 0.25);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .btn::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+            transition: left 0.5s;
+        }
+
+        .btn:hover::before {
+            left: 100%;
+        }
+
+        .btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 10px 25px rgba(139, 92, 246, 0.35);
+        }
+
+        .btn:active {
+            transform: translateY(-1px);
+        }
+
+        .btn-accent {
+            background: linear-gradient(135deg, var(--primary-light), var(--accent));
+        }
+
+        .btn-accent:hover {
+            box-shadow: 0 10px 25px rgba(167, 139, 250, 0.35);
+        }
+
+        /* View Scrape Page */
+        .page-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 2.5rem;
+            flex-wrap: wrap;
+            gap: 1.5rem;
+            padding: 1.5rem;
+            background: white;
+            border-radius: 18px;
+            border: 1px solid rgba(139, 92, 246, 0.1);
+            box-shadow: 0 5px 20px rgba(139, 92, 246, 0.05);
+        }
+
+        .page-header h2 {
+            font-size: 2rem;
+            background: linear-gradient(135deg, var(--primary), var(--primary-light));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .filter-section {
+            display: flex;
+            gap: 0.8rem;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+
+        .filter-btn {
+            padding: 0.6rem 1.2rem;
+            background: white;
+            border: 2px solid rgba(139, 92, 246, 0.2);
+            border-radius: 50px;
+            color: var(--text);
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 0.9rem;
+            font-weight: 500;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .filter-btn:hover {
+            border-color: var(--primary-light);
+            background: rgba(139, 92, 246, 0.05);
+            transform: translateY(-2px);
+        }
+
+        .filter-btn.active {
+            background: linear-gradient(135deg, var(--primary), var(--primary-light));
+            border-color: transparent;
+            color: white;
+            box-shadow: 0 6px 15px rgba(139, 92, 246, 0.25);
+        }
+
+        .language-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.4rem;
+            padding: 0.4rem 1rem;
+            border-radius: 50px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            margin-right: 0.5rem;
+            margin-bottom: 0.5rem;
+            border: 2px solid transparent;
+            transition: all 0.3s ease;
+        }
+
+        .language-badge:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        }
+
+        .language-js {
+            background: rgba(247, 223, 30, 0.15);
+            color: var(--js-color);
+            border-color: rgba(247, 223, 30, 0.3);
+        }
+
+        .language-python {
+            background: rgba(55, 118, 171, 0.15);
+            color: var(--python-color);
+            border-color: rgba(55, 118, 171, 0.3);
+        }
+
+        .language-html {
+            background: rgba(227, 79, 38, 0.15);
+            color: var(--html-color);
+            border-color: rgba(227, 79, 38, 0.3);
+        }
+
+        .language-css {
+            background: rgba(21, 114, 182, 0.15);
+            color: var(--css-color);
+            border-color: rgba(21, 114, 182, 0.3);
+        }
+
+        .language-json {
+            background: rgba(245, 166, 35, 0.15);
+            color: var(--json-color);
+            border-color: rgba(245, 166, 35, 0.3);
+        }
+
+        .code-list {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(360px, 1fr));
+            gap: 1.8rem;
+        }
+
+        .code-card {
+            background: var(--card-bg);
+            border: 1px solid var(--card-border);
+            border-radius: 18px;
+            padding: 1.8rem;
+            backdrop-filter: blur(10px);
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .code-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 6px;
+            height: 100%;
+            background: linear-gradient(to bottom, rgba(139, 92, 246, 0.3), rgba(167, 139, 250, 0.3));
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
+
+        .code-card:hover::before {
+            opacity: 1;
+        }
+
+        .code-card:hover {
+            border-color: var(--primary-light);
+            box-shadow: 0 15px 35px rgba(139, 92, 246, 0.15);
+            transform: translateY(-5px);
+        }
+
+        .code-card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 1.2rem;
+        }
+
+        .code-title {
+            font-size: 1.4rem;
+            font-weight: 700;
+            color: var(--text);
+            margin-bottom: 0.5rem;
+            line-height: 1.3;
+        }
+
+        .code-creator {
+            color: var(--primary);
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .code-creator::before {
+            content: '👨‍💻';
+            font-size: 0.9rem;
+        }
+
+        .code-date {
+            color: var(--text-light);
+            font-size: 0.85rem;
+            display: flex;
+            align-items: center;
+            gap: 0.4rem;
+        }
+
+        .code-date::before {
+            content: '📅';
+            font-size: 0.8rem;
+        }
+
+        .code-language {
+            margin: 0.8rem 0;
+        }
+
+        .code-preview {
+            background: rgba(139, 92, 246, 0.05);
+            border-radius: 12px;
+            padding: 1.2rem;
+            margin: 1.2rem 0;
+            text-align: center;
+            color: var(--text-light);
+            font-weight: 500;
+            border: 2px dashed rgba(139, 92, 246, 0.2);
+            transition: all 0.3s ease;
+        }
+
+        .code-card:hover .code-preview {
+            border-color: var(--primary-light);
+            background: rgba(139, 92, 246, 0.08);
+        }
+
+        .code-actions {
+            display: flex;
+            gap: 0.6rem;
+            margin-top: 1.5rem;
+        }
+
+        .action-btn {
+            flex: 1;
+            padding: 0.7rem 0;
+            border-radius: 10px;
+            background: rgba(139, 92, 246, 0.08);
+            color: var(--text);
+            border: 2px solid rgba(139, 92, 246, 0.15);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.6rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-weight: 500;
+            font-size: 0.9rem;
+        }
+
+        .action-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 5px 15px rgba(139, 92, 246, 0.2);
+        }
+
+        .copy-btn:hover {
+            background: rgba(139, 92, 246, 0.15);
+            color: var(--primary);
+            border-color: var(--primary);
+        }
+
+        .download-btn:hover {
+            background: rgba(16, 185, 129, 0.15);
+            color: var(--success);
+            border-color: var(--success);
+        }
+
+        .json-btn:hover {
+            background: rgba(167, 139, 250, 0.15);
+            color: var(--primary-light);
+            border-color: var(--primary-light);
+        }
+
+        /* Upload Page */
+        .upload-container {
+            max-width: 800px;
+            margin: 0 auto;
+        }
+
+        .upload-options {
+            display: flex;
+            gap: 1rem;
+            margin-bottom: 2.5rem;
+            justify-content: center;
+        }
+
+        .upload-option {
+            padding: 1.2rem 2.5rem;
+            background: white;
+            border: 2px solid rgba(139, 92, 246, 0.2);
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-weight: 500;
+            color: var(--text);
+            flex: 1;
+            max-width: 200px;
+            text-align: center;
+        }
+
+        .upload-option:hover {
+            border-color: var(--primary-light);
+            background: rgba(139, 92, 246, 0.05);
+            transform: translateY(-3px);
+        }
+
+        .upload-option.active {
+            background: linear-gradient(135deg, var(--primary), var(--primary-light));
+            border-color: transparent;
+            color: white;
+            box-shadow: 0 8px 20px rgba(139, 92, 246, 0.25);
+        }
+
+        .upload-box {
+            background: white;
+            border: 3px dashed rgba(139, 92, 246, 0.3);
+            border-radius: 20px;
+            padding: 3.5rem 2rem;
+            text-align: center;
+            margin-bottom: 2.5rem;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .upload-box::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(135deg, transparent, rgba(139, 92, 246, 0.02));
+        }
+
+        .upload-box.dragover {
+            border-color: var(--primary);
+            background: rgba(139, 92, 246, 0.05);
+            transform: scale(1.02);
+        }
+
+        .upload-icon {
+            font-size: 4.5rem;
+            background: linear-gradient(135deg, var(--primary), var(--primary-light));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 1.5rem;
+        }
+
+        .upload-box h3 {
+            font-size: 1.6rem;
+            margin-bottom: 1rem;
+            color: var(--primary);
+        }
+
+        .upload-box p {
+            color: var(--text-light);
+            margin-bottom: 2rem;
+            font-size: 1rem;
+        }
+
+        .code-input {
+            width: 100%;
+            min-height: 220px;
+            background: white;
+            border: 2px solid rgba(139, 92, 246, 0.2);
+            border-radius: 15px;
+            padding: 1.5rem;
+            color: var(--text);
+            font-family: 'Courier New', monospace;
+            font-size: 0.95rem;
+            resize: vertical;
+            transition: all 0.3s ease;
+        }
+
+        .code-input:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 4px rgba(139, 92, 246, 0.15);
+        }
+
+        .language-selector {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.8rem;
+            margin-top: 1rem;
+        }
+
+        .lang-option {
+            padding: 0.7rem 1.4rem;
+            background: white;
+            border: 2px solid rgba(139, 92, 246, 0.2);
+            border-radius: 50px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-weight: 500;
+            display: flex;
+            align-items: center;
+            gap: 0.6rem;
+            color: var(--text);
+        }
+
+        .lang-option:hover {
+            border-color: var(--primary-light);
+            background: rgba(139, 92, 246, 0.05);
+            transform: translateY(-2px);
+        }
+
+        .lang-option.active {
+            background: linear-gradient(135deg, var(--primary), var(--primary-light));
+            border-color: transparent;
+            color: white;
+            box-shadow: 0 6px 15px rgba(139, 92, 246, 0.2);
+        }
+
+        /* Profile Page */
+        .profile-header {
+            display: flex;
+            align-items: center;
+            gap: 2.5rem;
+            margin-bottom: 2.5rem;
+            padding: 2.5rem;
+            background: white;
+            border-radius: 20px;
+            border: 1px solid rgba(139, 92, 246, 0.1);
+            box-shadow: 0 10px 30px rgba(139, 92, 246, 0.08);
+        }
+
+        .profile-avatar {
+            width: 120px;
+            height: 120px;
+            background: linear-gradient(135deg, var(--primary), var(--primary-light));
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 3rem;
+            font-weight: 700;
+            color: white;
+            border: 5px solid white;
+            box-shadow: 0 10px 30px rgba(139, 92, 246, 0.25);
+        }
+
+        .profile-info h2 {
+            font-size: 2.2rem;
+            background: linear-gradient(135deg, var(--primary), var(--primary-light));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 0.5rem;
+        }
+
+        .profile-info p {
+            color: var(--text-light);
+            font-size: 1rem;
+            margin-bottom: 0.5rem;
+        }
+
+        /* Footer */
+        footer {
+            background: white;
+            padding: 2rem 3rem;
+            border-top: 1px solid rgba(139, 92, 246, 0.15);
+            text-align: center;
+            box-shadow: 0 -5px 20px rgba(139, 92, 246, 0.05);
+        }
+
+        .footer-content {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 1.5rem;
+        }
+
+        .footer-text {
+            color: var(--text-light);
+            font-size: 0.95rem;
+        }
+
+        .social-links {
+            display: flex;
+            gap: 1.5rem;
+        }
+
+        .social-link {
+            color: var(--text-light);
+            text-decoration: none;
+            transition: all 0.3s ease;
+            font-weight: 500;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .social-link:hover {
+            color: var(--primary);
+            transform: translateY(-2px);
+        }
+
+        /* Modal for JSON view */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            backdrop-filter: blur(5px);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+            padding: 1rem;
+        }
+
+        .modal.active {
+            display: flex;
+            animation: fadeIn 0.3s ease;
+        }
+
+        .modal-content {
+            background: white;
+            border-radius: 20px;
+            width: 90%;
+            max-width: 800px;
+            max-height: 80vh;
+            overflow: hidden;
+            border: 1px solid rgba(139, 92, 246, 0.2);
+            box-shadow: 0 25px 50px rgba(139, 92, 246, 0.2);
+            animation: modalSlideIn 0.3s ease;
+        }
+
+        @keyframes modalSlideIn {
+            from { transform: translateY(-20px); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 1.8rem 2rem;
+            border-bottom: 1px solid rgba(139, 92, 246, 0.1);
+            background: linear-gradient(135deg, rgba(139, 92, 246, 0.05), rgba(167, 139, 250, 0.02));
+        }
+
+        .modal-header h3 {
+            color: var(--primary);
+            font-size: 1.5rem;
+            font-weight: 600;
+        }
+
+        .close-modal {
+            background: rgba(139, 92, 246, 0.1);
+            border: none;
+            color: var(--primary);
+            font-size: 1.8rem;
+            cursor: pointer;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s ease;
+        }
+
+        .close-modal:hover {
+            background: var(--primary);
+            color: white;
+            transform: rotate(90deg);
+        }
+
+        .modal-body {
+            padding: 2rem;
+            overflow: auto;
+        }
+
+        .json-display {
+            background: rgba(139, 92, 246, 0.05);
+            border-radius: 12px;
+            padding: 1.5rem;
+            font-family: 'Courier New', monospace;
+            white-space: pre-wrap;
+            max-height: 50vh;
+            overflow: auto;
+            font-size: 0.9rem;
+            border: 1px solid rgba(139, 92, 246, 0.1);
+        }
+
+        /* Toast notification */
+        .toast {
+            position: fixed;
+            bottom: 2.5rem;
+            right: 2.5rem;
+            padding: 1.2rem 2rem;
+            background: white;
+            color: var(--text);
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            box-shadow: 0 10px 30px rgba(139, 92, 246, 0.2);
+            z-index: 1001;
+            transform: translateY(100px);
+            opacity: 0;
+            transition: all 0.4s ease;
+            border-left: 5px solid var(--primary);
+            max-width: 400px;
+        }
+
+        .toast.active {
+            transform: translateY(0);
+            opacity: 1;
+        }
+
+        .toast.error {
+            border-left-color: var(--error);
+        }
+
+        .toast.error i {
+            color: var(--error);
+        }
+
+        .toast.warning {
+            border-left-color: var(--warning);
+        }
+
+        .toast.warning i {
+            color: var(--warning);
+        }
+
+        .toast i {
+            font-size: 1.5rem;
+            color: var(--primary);
+        }
+
+        #toast-message {
+            font-weight: 500;
+            flex: 1;
+        }
+
+        /* Responsive styles */
+        @media (max-width: 992px) {
+            .code-list {
+                grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+            }
+            
+            .actions {
+                flex-direction: column;
+                align-items: center;
+            }
+            
+            .action-card {
+                width: 100%;
+                max-width: 420px;
+            }
+
+            nav ul {
+                display: none;
+            }
+
+            .hamburger-menu {
+                display: flex;
+            }
+
+            .user-info span {
+                display: none;
+            }
+
+            .profile-header {
+                flex-direction: column;
+                text-align: center;
+                gap: 1.5rem;
+                padding: 2rem;
+            }
+        }
+
+        @media (max-width: 768px) {
+            header {
+                padding: 1.2rem 1.5rem;
+            }
+            
+            .container {
+                padding: 1.5rem 1rem;
+            }
+            
+            .footer-content {
+                flex-direction: column;
+                text-align: center;
+                gap: 1rem;
+            }
+            
+            .page-header {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 1.2rem;
+                padding: 1.2rem;
+            }
+
+            .auth-card {
+                padding: 2rem 1.5rem;
+            }
+
+            .upload-options {
+                flex-direction: column;
+                align-items: center;
+            }
+
+            .upload-option {
+                max-width: 100%;
+                width: 100%;
+            }
+
+            .mobile-menu {
+                width: 250px;
+            }
+        }
+
+        @media (max-width: 576px) {
+            .code-list {
+                grid-template-columns: 1fr;
+                gap: 1.2rem;
+            }
+            
+            .code-actions {
+                flex-direction: column;
+                gap: 0.8rem;
+            }
+
+            .action-btn {
+                padding: 0.9rem 0;
+            }
+
+            .filter-section {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 0.8rem;
+            }
+
+            .filter-btn {
+                width: 100%;
+                justify-content: center;
+            }
+
+            .welcome-section h1 {
+                font-size: 2rem;
+            }
+
+            .stats-card .total-scrape {
+                font-size: 2.8rem;
+            }
+
+            .toast {
+                left: 1rem;
+                right: 1rem;
+                bottom: 1.5rem;
+                max-width: none;
+            }
+        }
+
+        /* Scrollbar styling */
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: rgba(139, 92, 246, 0.05);
+            border-radius: 10px;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: linear-gradient(135deg, var(--primary), var(--primary-light));
+            border-radius: 10px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: linear-gradient(135deg, var(--primary-dark), var(--primary));
+        }
+    </style>
+</head>
+<body>
+    <!-- Background Grid -->
+    <div class="grid-bg"></div>
+    
+    <!-- Mobile Menu Overlay -->
+    <div class="menu-overlay" id="menu-overlay"></div>
+    
+    <!-- Mobile Menu -->
+    <div class="mobile-menu" id="mobile-menu">
+        <ul>
+            <li><a href="#" class="nav-link active" data-page="home">Home</a></li>
+            <li><a href="#" class="nav-link" data-page="view-scrape">View Scrape</a></li>
+            <li><a href="#" class="nav-link" data-page="upload">Upload Code</a></li>
+            <li><a href="#" class="nav-link" data-page="profile">Profile</a></li>
+            <li><a href="#" class="nav-link logout-btn">Logout</a></li>
+        </ul>
+    </div>
+    
+    <!-- Header -->
+    <header>
+        <div class="hamburger-menu" id="hamburger-menu">
+            <span></span>
+            <span></span>
+            <span></span>
+        </div>
+        
+        <div class="logo">
+            <i class="fas fa-code"></i>
+            <span>CodeStore</span>
+        </div>
+        
+        <nav>
+            <ul>
+                <li><a href="#" class="nav-link active" data-page="home">Home</a></li>
+                <li><a href="#" class="nav-link" data-page="view-scrape">View Scrape</a></li>
+                <li><a href="#" class="nav-link" data-page="upload">Upload Code</a></li>
+                <li><a href="#" class="nav-link" data-page="profile">Profile</a></li>
+            </ul>
+        </nav>
+        
+        <div class="user-info">
+            <div class="user-avatar">R</div>
+            <span>Robin</span>
+            <button class="btn logout-btn">Logout</button>
+        </div>
+    </header>
+    
+    <!-- Main Content Container -->
+    <div class="container">
+        <!-- Login/Register Page (Default) -->
+        <div class="page active" id="auth">
+            <div class="auth-container">
+                <div class="auth-card">
+                    <div class="auth-header">
+                        <h2>Welcome to CodeStore</h2>
+                        <p>Manage your scraped code in one place</p>
+                    </div>
+                    
+                    <div class="auth-tabs">
+                        <button class="auth-tab active" id="login-tab">Login</button>
+                        <button class="auth-tab" id="register-tab">Register</button>
+                    </div>
+                    
+                    <!-- Login Form -->
+                    <form id="login-form">
+                        <div class="form-group">
+                            <label for="login-email">Email</label>
+                            <input type="email" id="login-email" class="form-input" placeholder="Enter your email" required>
+                            <div class="form-error" id="login-email-error"></div>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="login-password">Password</label>
+                            <input type="password" id="login-password" class="form-input" placeholder="Enter your password" required>
+                            <div class="form-error" id="login-password-error"></div>
+                        </div>
+                        
+                        <button type="submit" class="btn" style="width: 100%; padding: 1rem; margin-top: 0.5rem;">
+                            <i class="fas fa-sign-in-alt"></i> Login
+                        </button>
+                    </form>
+                    
+                    <!-- Register Form -->
+                    <form id="register-form" style="display: none;">
+                        <div class="form-group">
+                            <label for="register-username">Username</label>
+                            <input type="text" id="register-username" class="form-input" placeholder="Choose a username" required>
+                            <div class="form-error" id="register-username-error"></div>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="register-email">Email</label>
+                            <input type="email" id="register-email" class="form-input" placeholder="Enter your email" required>
+                            <div class="form-error" id="register-email-error"></div>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="register-password">Password</label>
+                            <input type="password" id="register-password" class="form-input" placeholder="Create a password" required>
+                            <div class="form-error" id="register-password-error"></div>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="register-confirm-password">Confirm Password</label>
+                            <input type="password" id="register-confirm-password" class="form-input" placeholder="Confirm your password" required>
+                            <div class="form-error" id="register-confirm-password-error"></div>
+                        </div>
+                        
+                        <button type="submit" class="btn" style="width: 100%; padding: 1rem; margin-top: 0.5rem;">
+                            <i class="fas fa-user-plus"></i> Create Account
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Home Dashboard -->
+        <div class="page" id="home">
+            <div class="welcome-section">
+                <h1>Selamat datang, <span id="welcome-username">Robin</span>!</h1>
+                <p>Kelola dan simpan semua hasil scrape Anda di satu tempat</p>
+            </div>
+            
+            <div class="stats-card">
+                <h2>Total Scrape</h2>
+                <div class="total-scrape" id="total-scrape">24</div>
+                <p>Kode berhasil di-scrape dan disimpan</p>
+            </div>
+            
+            <div class="actions">
+                <div class="action-card" id="view-scrape-action">
+                    <div class="action-icon">
+                        <i class="fas fa-eye"></i>
+                    </div>
+                    <h3>View Scrape</h3>
+                    <p>Lihat semua kode yang telah di-upload dan dikelola</p>
+                    <button class="btn">View All Code</button>
+                </div>
+                
+                <div class="action-card" id="upload-code-action">
+                    <div class="action-icon">
+                        <i class="fas fa-cloud-upload-alt"></i>
+                    </div>
+                    <h3>Upload Code</h3>
+                    <p>Unggah kode hasil scrape baru ke dalam sistem</p>
+                    <button class="btn btn-accent">Upload Code</button>
+                </div>
+            </div>
+        </div>
+        
+        <!-- View Scrape Page -->
+        <div class="page" id="view-scrape">
+            <div class="page-header">
+                <h2>All Scraped Code</h2>
+                <div class="filter-section">
+                    <span style="color: var(--text-light); font-weight: 500;">Filter by:</span>
+                    <button class="filter-btn active" data-filter="all">All</button>
+                    <button class="filter-btn" data-filter="javascript">
+                        <i class="fab fa-js-square"></i> JavaScript
+                    </button>
+                    <button class="filter-btn" data-filter="python">
+                        <i class="fab fa-python"></i> Python
+                    </button>
+                    <button class="filter-btn" data-filter="html">
+                        <i class="fab fa-html5"></i> HTML
+                    </button>
+                    <button class="filter-btn" data-filter="css">
+                        <i class="fab fa-css3-alt"></i> CSS
+                    </button>
+                    <button class="filter-btn" data-filter="json">
+                        <i class="fas fa-code"></i> JSON
+                    </button>
+                </div>
+            </div>
+            
+            <div class="code-list" id="code-list">
+                <!-- Code cards will be generated here -->
+            </div>
+        </div>
+        
+        <!-- Upload Code Page -->
+        <div class="page" id="upload">
+            <div class="upload-container">
+                <div class="page-header">
+                    <h2>Upload Scraped Code</h2>
+                </div>
+                
+                <div class="upload-options">
+                    <div class="upload-option active" id="file-option">File Upload</div>
+                    <div class="upload-option" id="paste-option">Paste Code</div>
+                </div>
+                
+                <div class="upload-box" id="upload-box">
+                    <div class="upload-icon">
+                        <i class="fas fa-file-upload"></i>
+                    </div>
+                    <h3>Upload File</h3>
+                    <p>Drag & drop file Anda di sini atau klik untuk memilih</p>
+                    <input type="file" id="file-input" style="display: none;">
+                    <button class="btn" id="browse-btn">Browse Files</button>
+                    <p style="margin-top: 1rem; font-size: 0.9rem; color: var(--text-light);">Format yang didukung: .txt, .js, .py, .html, .json</p>
+                </div>
+                
+                <div id="paste-section" style="display: none;">
+                    <div class="form-group">
+                        <label for="code-title">Code Title</label>
+                        <input type="text" id="code-title" class="form-input" placeholder="Masukkan judul kode">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="code-input">Paste Your Code Here</label>
+                        <textarea id="code-input" class="code-input" placeholder="Tempel kode hasil scrape di sini..."></textarea>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>Select Language</label>
+                        <div class="language-selector">
+                            <div class="lang-option active" data-lang="javascript">
+                                <i class="fab fa-js-square"></i> JavaScript
+                            </div>
+                            <div class="lang-option" data-lang="python">
+                                <i class="fab fa-python"></i> Python
+                            </div>
+                            <div class="lang-option" data-lang="html">
+                                <i class="fab fa-html5"></i> HTML
+                            </div>
+                            <div class="lang-option" data-lang="css">
+                                <i class="fab fa-css3-alt"></i> CSS
+                            </div>
+                            <div class="lang-option" data-lang="json">
+                                <i class="fas fa-code"></i> JSON
+                            </div>
+                            <div class="lang-option" data-lang="other">
+                                <i class="fas fa-file-code"></i> Other
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="form-group">
+                    <label for="creator-name">Creator Name</label>
+                    <input type="text" id="creator-name" class="form-input" placeholder="Nama pembuat kode" value="Robin">
+                </div>
+                
+                <button class="btn btn-accent" id="upload-btn" style="width: 100%; padding: 1rem; font-size: 1.1rem; margin-top: 1rem;">
+                    <i class="fas fa-upload"></i> Upload Code
+                </button>
+            </div>
+        </div>
+        
+        <!-- Profile Page -->
+        <div class="page" id="profile">
+            <div class="profile-header">
+                <div class="profile-avatar" id="profile-avatar">R</div>
+                <div class="profile-info">
+                    <h2 id="profile-name">Robin</h2>
+                    <p id="profile-email">robin@codestore.dev</p>
+                    <p style="color: var(--text-light);">Member since: March 2025</p>
+                </div>
+            </div>
+            
+            <div class="stats-card">
+                <h2>User Statistics</h2>
+                <div style="margin-top: 1.5rem; display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 1.5rem;">
+                    <div style="background: rgba(139, 92, 246, 0.05); padding: 1.8rem; border-radius: 15px; border: 1px solid rgba(139, 92, 246, 0.1);">
+                        <h4 style="color: var(--primary); margin-bottom: 0.8rem; font-size: 1rem;">Total Uploads</h4>
+                        <p style="font-size: 2.5rem; font-weight: 800; background: linear-gradient(135deg, var(--primary), var(--primary-light)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;">24</p>
+                    </div>
+                    <div style="background: rgba(139, 92, 246, 0.05); padding: 1.8rem; border-radius: 15px; border: 1px solid rgba(139, 92, 246, 0.1);">
+                        <h4 style="color: var(--primary); margin-bottom: 0.8rem; font-size: 1rem;">Last Upload</h4>
+                        <p style="font-size: 1.5rem; font-weight: 700; color: var(--text);">2 days ago</p>
+                    </div>
+                    <div style="background: rgba(139, 92, 246, 0.05); padding: 1.8rem; border-radius: 15px; border: 1px solid rgba(139, 92, 246, 0.1);">
+                        <h4 style="color: var(--primary); margin-bottom: 0.8rem; font-size: 1rem;">Storage Used</h4>
+                        <p style="font-size: 1.5rem; font-weight: 700; color: var(--text);">1.2 MB</p>
+                    </div>
+                </div>
+                
+                <div style="margin-top: 2.5rem;">
+                    <h3 style="color: var(--primary); margin-bottom: 1.2rem; font-size: 1.3rem;">Language Distribution</h3>
+                    <div style="display: flex; flex-wrap: wrap; gap: 1rem;">
+                        <span class="language-badge language-js">JavaScript: 10</span>
+                        <span class="language-badge language-python">Python: 8</span>
+                        <span class="language-badge language-html">HTML: 3</span>
+                        <span class="language-badge language-css">CSS: 2</span>
+                        <span class="language-badge language-json">JSON: 1</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Footer -->
+    <footer>
+        <div class="footer-content">
+            <div class="footer-text">© 2025 CodeStore by Robin</div>
+            <div class="social-links">
+                <a href="#" class="social-link">
+                    <i class="fab fa-github"></i> GitHub
+                </a>
+                <a href="#" class="social-link">
+                    <i class="fab fa-linkedin"></i> LinkedIn
+                </a>
+            </div>
+        </div>
+    </footer>
+    
+    <!-- JSON View Modal -->
+    <div class="modal" id="json-modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>JSON View</h3>
+                <button class="close-modal" id="close-modal">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="json-display" id="json-display">
+                    <!-- JSON content will be displayed here -->
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Toast Notification -->
+    <div class="toast" id="toast">
+        <i class="fas fa-check-circle"></i>
+        <span id="toast-message">Code berhasil di-upload!</span>
+    </div>
+    
+    <script>
+        // ====================
+        // VARIABLES & INIT DATA
+        // ====================
+        
+        // Sample data for code cards with languages
+        const sampleCodes = [
+            {
+                id: 1,
+                title: "E-commerce Product Scraper",
+                creator: "Robin",
+                date: "2025-03-15",
+                language: "python",
+                codePreview: "View All Code",
+                jsonData: {
+                    "title": "E-commerce Product Scraper",
+                    "creator": "Robin",
+                    "language": "Python",
+                    "lines": 87,
+                    "description": "Scraper untuk mengambil data produk dari e-commerce website",
+                    "lastExecuted": "2025-03-14T10:30:00Z",
+                    "successRate": "98%"
+                }
+            },
+            {
+                id: 2,
+                title: "Social Media Analytics",
+                creator: "Robin",
+                date: "2025-03-10",
+                language: "javascript",
+                codePreview: "View All Code",
+                jsonData: {
+                    "title": "Social Media Analytics",
+                    "creator": "Robin",
+                    "language": "JavaScript",
+                    "lines": 124,
+                    "description": "Tool untuk menganalisis engagement di platform media sosial",
+                    "lastExecuted": "2025-03-09T14:20:00Z",
+                    "successRate": "95%"
+                }
+            },
+            {
+                id: 3,
+                title: "News Aggregator",
+                creator: "Robin",
+                date: "2025-03-05",
+                language: "python",
+                codePreview: "View All Code",
+                jsonData: {
+                    "title": "News Aggregator",
+                    "creator": "Robin",
+                    "language": "Python",
+                    "lines": 156,
+                    "description": "Mengumpulkan berita dari berbagai sumber berdasarkan kata kunci",
+                    "lastExecuted": "2025-03-04T09:15:00Z",
+                    "successRate": "99%"
+                }
+            },
+            {
+                id: 4,
+                title: "Real Estate Data Collector",
+                creator: "Robin",
+                date: "2025-02-28",
+                language: "python",
+                codePreview: "View All Code",
+                jsonData: {
+                    "title": "Real Estate Data Collector",
+                    "creator": "Robin",
+                    "language": "Python",
+                    "lines": 203,
+                    "description": "Mengumpulkan data properti dari berbagai listing website",
+                    "lastExecuted": "2025-02-27T16:45:00Z",
+                    "successRate": "92%"
+                }
+            },
+            {
+                id: 5,
+                title: "Job Portal Scraper",
+                creator: "Robin",
+                date: "2025-02-20",
+                language: "javascript",
+                codePreview: "View All Code",
+                jsonData: {
+                    "title": "Job Portal Scraper",
+                    "creator": "Robin",
+                    "language": "JavaScript",
+                    "lines": 178,
+                    "description": "Mengambil data lowongan pekerjaan dari berbagai portal",
+                    "lastExecuted": "2025-02-19T11:30:00Z",
+                    "successRate": "96%"
+                }
+            },
+            {
+                id: 6,
+                title: "Stock Market Data Fetcher",
+                creator: "Robin",
+                date: "2025-02-15",
+                language: "python",
+                codePreview: "View All Code",
+                jsonData: {
+                    "title": "Stock Market Data Fetcher",
+                    "creator": "Robin",
+                    "language": "Python",
+                    "lines": 142,
+                    "description": "Mengambil data historis saham dari API financial",
+                    "lastExecuted": "2025-02-14T13:20:00Z",
+                    "successRate": "100%"
+                }
+            },
+            {
+                id: 7,
+                title: "Website Layout Template",
+                creator: "Robin",
+                date: "2025-02-10",
+                language: "html",
+                codePreview: "View All Code",
+                jsonData: {
+                    "title": "Website Layout Template",
+                    "creator": "Robin",
+                    "language": "HTML",
+                    "lines": 89,
+                    "description": "Template layout website responsif",
+                    "lastExecuted": "2025-02-09T15:10:00Z",
+                    "successRate": "100%"
+                }
+            },
+            {
+                id: 8,
+                title: "Modern CSS Framework",
+                creator: "Robin",
+                date: "2025-02-05",
+                language: "css",
+                codePreview: "View All Code",
+                jsonData: {
+                    "title": "Modern CSS Framework",
+                    "creator": "Robin",
+                    "language": "CSS",
+                    "lines": 256,
+                    "description": "Framework CSS dengan utility classes",
+                    "lastExecuted": "2025-02-04T12:45:00Z",
+                    "successRate": "100%"
+                }
+            },
+            {
+                id: 9,
+                title: "API Response Formatter",
+                creator: "Robin",
+                date: "2025-01-28",
+                language: "json",
+                codePreview: "View All Code",
+                jsonData: {
+                    "title": "API Response Formatter",
+                    "creator": "Robin",
+                    "language": "JSON",
+                    "lines": 45,
+                    "description": "Formatter untuk response API dalam format JSON",
+                    "lastExecuted": "2025-01-27T14:30:00Z",
+                    "successRate": "100%"
+                }
+            }
+        ];
+
+        // User session management
+        let currentUser = null;
+        let isLoggedIn = false;
+
+        // DOM Elements
+        const hamburgerMenu = document.getElementById('hamburger-menu');
+        const mobileMenu = document.getElementById('mobile-menu');
+        const menuOverlay = document.getElementById('menu-overlay');
+        const navLinks = document.querySelectorAll('.nav-link');
+        const pages = document.querySelectorAll('.page');
+        const viewScrapeAction = document.getElementById('view-scrape-action');
+        const uploadCodeAction = document.getElementById('upload-code-action');
+        const codeList = document.getElementById('code-list');
+        const uploadOptions = document.querySelectorAll('.upload-option');
+        const uploadBox = document.getElementById('upload-box');
+        const browseBtn = document.getElementById('browse-btn');
+        const fileInput = document.getElementById('file-input');
+        const pasteSection = document.getElementById('paste-section');
+        const uploadBtn = document.getElementById('upload-btn');
+        const totalScrapeElement = document.getElementById('total-scrape');
+        const jsonModal = document.getElementById('json-modal');
+        const closeModal = document.getElementById('close-modal');
+        const jsonDisplay = document.getElementById('json-display');
+        const toast = document.getElementById('toast');
+        const toastMessage = document.getElementById('toast-message');
+        const logoutBtns = document.querySelectorAll('.logout-btn');
+        const authTabs = document.querySelectorAll('.auth-tab');
+        const loginForm = document.getElementById('login-form');
+        const registerForm = document.getElementById('register-form');
+        const filterBtns = document.querySelectorAll('.filter-btn');
+        const langOptions = document.querySelectorAll('.lang-option');
+        const welcomeUsername = document.getElementById('welcome-username');
+        const profileAvatar = document.getElementById('profile-avatar');
+        const profileName = document.getElementById('profile-name');
+        const profileEmail = document.getElementById('profile-email');
+
+        // ====================
+        // INITIALIZATION
+        // ====================
+        
+        document.addEventListener('DOMContentLoaded', function() {
+            // Check if user is logged in
+            checkLoginStatus();
+            
+            // Generate code cards
+            generateCodeCards();
+            
+            // Set total scrape count
+            totalScrapeElement.textContent = sampleCodes.length;
+            
+            // Setup event listeners
+            setupEventListeners();
+        });
+
+        // ====================
+        // AUTH FUNCTIONS
+        // ====================
+        
+        function checkLoginStatus() {
+            const savedUser = localStorage.getItem('codestore_user');
+            if (savedUser) {
+                currentUser = JSON.parse(savedUser);
+                isLoggedIn = true;
+                showApp();
+            } else {
+                showAuth();
+            }
+        }
+
+        function showAuth() {
+            pages.forEach(page => page.classList.remove('active'));
+            document.getElementById('auth').classList.add('active');
+            document.querySelector('header').style.display = 'none';
+            document.querySelector('footer').style.display = 'none';
+        }
+
+        function showApp() {
+            pages.forEach(page => page.classList.remove('active'));
+            document.getElementById('home').classList.add('active');
+            document.querySelector('header').style.display = 'flex';
+            document.querySelector('footer').style.display = 'block';
+            
+            // Update user info
+            updateUserUI();
+        }
+
+        function updateUserUI() {
+            if (currentUser) {
+                welcomeUsername.textContent = currentUser.username;
+                profileName.textContent = currentUser.username;
+                profileEmail.textContent = currentUser.email;
+                profileAvatar.textContent = currentUser.username.charAt(0).toUpperCase();
+                document.querySelector('.user-avatar').textContent = currentUser.username.charAt(0).toUpperCase();
+            }
+        }
+
+        // ====================
+        // UI FUNCTIONS
+        // ====================
+        
+        function generateCodeCards(filter = 'all') {
+            codeList.innerHTML = '';
+            
+            const filteredCodes = filter === 'all' 
+                ? sampleCodes 
+                : sampleCodes.filter(code => code.language === filter);
+            
+            filteredCodes.forEach(code => {
+                const card = document.createElement('div');
+                card.className = 'code-card';
+                card.setAttribute('data-language', code.language);
+                
+                // Get language badge class
+                const langClass = `language-${code.language}`;
+                const langName = code.language.charAt(0).toUpperCase() + code.language.slice(1);
+                
+                card.innerHTML = `
+                    <div class="code-card-header">
+                        <div>
+                            <div class="code-title">${code.title}</div>
+                            <div class="code-creator">${code.creator}</div>
+                            <div class="code-language">
+                                <span class="language-badge ${langClass}">
+                                    <i class="fab fa-${code.language === 'python' ? 'python' : code.language === 'javascript' ? 'js-square' : code.language === 'html' ? 'html5' : code.language === 'css' ? 'css3-alt' : 'code'}"></i>
+                                    ${langName}
+                                </span>
+                            </div>
+                        </div>
+                        <div class="code-date">${formatDate(code.date)}</div>
+                    </div>
+                    <div class="code-preview">
+                        <i class="fas fa-code"></i> ${code.codePreview}
+                    </div>
+                    <div class="code-actions">
+                        <button class="action-btn copy-btn" data-id="${code.id}">
+                            <i class="fas fa-copy"></i> Copy
+                        </button>
+                        <button class="action-btn download-btn" data-id="${code.id}">
+                            <i class="fas fa-download"></i> Download
+                        </button>
+                        <button class="action-btn json-btn" data-id="${code.id}">
+                            <i class="fas fa-file-code"></i> View JSON
+                        </button>
+                    </div>
+                `;
+                codeList.appendChild(card);
+            });
+            
+            // Update count
+            totalScrapeElement.textContent = filteredCodes.length;
+            
+            // Add event listeners to buttons
+            document.querySelectorAll('.copy-btn').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    const id = parseInt(this.getAttribute('data-id'));
+                    copyCode(id);
+                });
+            });
+            
+            document.querySelectorAll('.download-btn').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    const id = parseInt(this.getAttribute('data-id'));
+                    downloadCode(id);
+                });
+            });
+            
+            document.querySelectorAll('.json-btn').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    const id = parseInt(this.getAttribute('data-id'));
+                    showJson(id);
+                });
+            });
+        }
+
+        // ====================
+        // EVENT LISTENERS SETUP
+        // ====================
+        
+        function setupEventListeners() {
+            // Hamburger menu
+            hamburgerMenu.addEventListener('click', function() {
+                mobileMenu.classList.toggle('active');
+                menuOverlay.classList.toggle('active');
+                this.classList.toggle('active');
+            });
+            
+            // Mobile menu overlay
+            menuOverlay.addEventListener('click', function() {
+                mobileMenu.classList.remove('active');
+                this.classList.remove('active');
+                hamburgerMenu.classList.remove('active');
+            });
+            
+            // Mobile menu links
+            document.querySelectorAll('.mobile-menu .nav-link').forEach(link => {
+                link.addEventListener('click', function() {
+                    mobileMenu.classList.remove('active');
+                    menuOverlay.classList.remove('active');
+                    hamburgerMenu.classList.remove('active');
+                });
+            });
+            
+            // Navigation
+            navLinks.forEach(link => {
+                link.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    
+                    if (!isLoggedIn) {
+                        showToast('Please login first', true);
+                        return;
+                    }
+                    
+                    const pageId = this.getAttribute('data-page');
+                    
+                    // Update active nav link
+                    navLinks.forEach(l => l.classList.remove('active'));
+                    this.classList.add('active');
+                    
+                    // Update mobile menu active link
+                    document.querySelectorAll('.mobile-menu .nav-link').forEach(l => {
+                        l.classList.remove('active');
+                        if (l.getAttribute('data-page') === pageId) {
+                            l.classList.add('active');
+                        }
+                    });
+                    
+                    // Show selected page
+                    pages.forEach(page => {
+                        page.classList.remove('active');
+                        if (page.id === pageId) {
+                            page.classList.add('active');
+                        }
+                    });
+                });
+            });
+            
+            // Action cards navigation
+            viewScrapeAction.addEventListener('click', function() {
+                if (!isLoggedIn) {
+                    showToast('Please login first', true);
+                    return;
+                }
+                
+                navLinks.forEach(l => l.classList.remove('active'));
+                document.querySelector('[data-page="view-scrape"]').classList.add('active');
+                
+                pages.forEach(page => page.classList.remove('active'));
+                document.getElementById('view-scrape').classList.add('active');
+            });
+            
+            uploadCodeAction.addEventListener('click', function() {
+                if (!isLoggedIn) {
+                    showToast('Please login first', true);
+                    return;
+                }
+                
+                navLinks.forEach(l => l.classList.remove('active'));
+                document.querySelector('[data-page="upload"]').classList.add('active');
+                
+                pages.forEach(page => page.classList.remove('active'));
+                document.getElementById('upload').classList.add('active');
+            });
+            
+            // Auth tabs
+            authTabs.forEach(tab => {
+                tab.addEventListener('click', function() {
+                    authTabs.forEach(t => t.classList.remove('active'));
+                    this.classList.add('active');
+                    
+                    if (this.id === 'login-tab') {
+                        loginForm.style.display = 'block';
+                        registerForm.style.display = 'none';
+                    } else {
+                        loginForm.style.display = 'none';
+                        registerForm.style.display = 'block';
+                    }
+                });
+            });
+            
+            // Login form
+            loginForm.addEventListener('submit', function(e) {
+                e.preventDefault();
+                
+                const email = document.getElementById('login-email').value;
+                const password = document.getElementById('login-password').value;
+                
+                // Simple validation
+                clearErrors('login');
+                
+                if (!email) {
+                    showError('login-email-error', 'Email is required');
+                    return;
+                }
+                
+                if (!password) {
+                    showError('login-password-error', 'Password is required');
+                    return;
+                }
+                
+                // Simulate login (in real app, this would be API call)
+                currentUser = {
+                    username: email.split('@')[0],
+                    email: email,
+                    joined: new Date().toISOString().split('T')[0]
+                };
+                
+                isLoggedIn = true;
+                localStorage.setItem('codestore_user', JSON.stringify(currentUser));
+                
+                showToast('Login successful!');
+                showApp();
+            });
+            
+            // Register form
+            registerForm.addEventListener('submit', function(e) {
+                e.preventDefault();
+                
+                const username = document.getElementById('register-username').value;
+                const email = document.getElementById('register-email').value;
+                const password = document.getElementById('register-password').value;
+                const confirmPassword = document.getElementById('register-confirm-password').value;
+                
+                // Clear previous errors
+                clearErrors('register');
+                
+                // Validation
+                let isValid = true;
+                
+                if (!username) {
+                    showError('register-username-error', 'Username is required');
+                    isValid = false;
+                } else if (username.length < 3) {
+                    showError('register-username-error', 'Username must be at least 3 characters');
+                    isValid = false;
+                }
+                
+                if (!email) {
+                    showError('register-email-error', 'Email is required');
+                    isValid = false;
+                } else if (!isValidEmail(email)) {
+                    showError('register-email-error', 'Please enter a valid email');
+                    isValid = false;
+                }
+                
+                if (!password) {
+                    showError('register-password-error', 'Password is required');
+                    isValid = false;
+                } else if (password.length < 6) {
+                    showError('register-password-error', 'Password must be at least 6 characters');
+                    isValid = false;
+                }
+                
+                if (!confirmPassword) {
+                    showError('register-confirm-password-error', 'Please confirm your password');
+                    isValid = false;
+                } else if (password !== confirmPassword) {
+                    showError('register-confirm-password-error', 'Passwords do not match');
+                    isValid = false;
+                }
+                
+                if (!isValid) return;
+                
+                // Simulate registration (in real app, this would be API call)
+                currentUser = {
+                    username: username,
+                    email: email,
+                    joined: new Date().toISOString().split('T')[0]
+                };
+                
+                isLoggedIn = true;
+                localStorage.setItem('codestore_user', JSON.stringify(currentUser));
+                
+                showToast('Registration successful!');
+                showApp();
+                
+                // Switch to login tab
+                authTabs.forEach(t => t.classList.remove('active'));
+                document.getElementById('login-tab').classList.add('active');
+                loginForm.style.display = 'block';
+                registerForm.style.display = 'none';
+                
+                // Clear form
+                this.reset();
+            });
+            
+            // Filter buttons
+            filterBtns.forEach(btn => {
+                btn.addEventListener('click', function() {
+                    filterBtns.forEach(b => b.classList.remove('active'));
+                    this.classList.add('active');
+                    
+                    const filter = this.getAttribute('data-filter');
+                    generateCodeCards(filter);
+                });
+            });
+            
+            // Upload options
+            uploadOptions.forEach(option => {
+                option.addEventListener('click', function() {
+                    uploadOptions.forEach(opt => opt.classList.remove('active'));
+                    this.classList.add('active');
+                    
+                    if (this.id === 'file-option') {
+                        uploadBox.style.display = 'block';
+                        pasteSection.style.display = 'none';
+                    } else {
+                        uploadBox.style.display = 'none';
+                        pasteSection.style.display = 'block';
+                    }
+                });
+            });
+            
+            // Language options
+            langOptions.forEach(option => {
+                option.addEventListener('click', function() {
+                    langOptions.forEach(opt => opt.classList.remove('active'));
+                    this.classList.add('active');
+                });
+            });
+            
+            // File upload
+            browseBtn.addEventListener('click', function() {
+                fileInput.click();
+            });
+            
+            fileInput.addEventListener('change', function() {
+                if (this.files.length > 0) {
+                    const fileName = this.files[0].name;
+                    const fileExt = fileName.split('.').pop().toLowerCase();
+                    
+                    // Detect language from file extension
+                    let lang = 'other';
+                    if (['js', 'jsx', 'ts', 'tsx'].includes(fileExt)) lang = 'javascript';
+                    else if (['py', 'pyw'].includes(fileExt)) lang = 'python';
+                    else if (['html', 'htm'].includes(fileExt)) lang = 'html';
+                    else if (['css', 'scss', 'sass'].includes(fileExt)) lang = 'css';
+                    else if (['json'].includes(fileExt)) lang = 'json';
+                    
+                    uploadBox.innerHTML = `
+                        <div class="upload-icon">
+                            <i class="fas fa-file-code"></i>
+                        </div>
+                        <h3>${fileName}</h3>
+                        <p>File siap di-upload</p>
+                        <div style="margin: 1rem 0;">
+                            <span class="language-badge language-${lang}">
+                                <i class="fab fa-${lang === 'python' ? 'python' : lang === 'javascript' ? 'js-square' : lang === 'html' ? 'html5' : lang === 'css' ? 'css3-alt' : 'code'}"></i>
+                                ${lang.charAt(0).toUpperCase() + lang.slice(1)}
+                            </span>
+                        </div>
+                        <button class="btn" id="change-file-btn">Change File</button>
+                    `;
+                    
+                    document.getElementById('change-file-btn').addEventListener('click', function() {
+                        fileInput.click();
+                    });
+                }
+            });
+            
+            // Drag and drop
+            uploadBox.addEventListener('dragover', function(e) {
+                e.preventDefault();
+                this.classList.add('dragover');
+            });
+            
+            uploadBox.addEventListener('dragleave', function() {
+                this.classList.remove('dragover');
+            });
+            
+            uploadBox.addEventListener('drop', function(e) {
+                e.preventDefault();
+                this.classList.remove('dragover');
+                
+                if (e.dataTransfer.files.length > 0) {
+                    const fileName = e.dataTransfer.files[0].name;
+                    const fileExt = fileName.split('.').pop().toLowerCase();
+                    
+                    // Detect language from file extension
+                    let lang = 'other';
+                    if (['js', 'jsx', 'ts', 'tsx'].includes(fileExt)) lang = 'javascript';
+                    else if (['py', 'pyw'].includes(fileExt)) lang = 'python';
+                    else if (['html', 'htm'].includes(fileExt)) lang = 'html';
+                    else if (['css', 'scss', 'sass'].includes(fileExt)) lang = 'css';
+                    else if (['json'].includes(fileExt)) lang = 'json';
+                    
+                    uploadBox.innerHTML = `
+                        <div class="upload-icon">
+                            <i class="fas fa-file-code"></i>
+                        </div>
+                        <h3>${fileName}</h3>
+                        <p>File siap di-upload</p>
+                        <div style="margin: 1rem 0;">
+                            <span class="language-badge language-${lang}">
+                                <i class="fab fa-${lang === 'python' ? 'python' : lang === 'javascript' ? 'js-square' : lang === 'html' ? 'html5' : lang === 'css' ? 'css3-alt' : 'code'}"></i>
+                                ${lang.charAt(0).toUpperCase() + lang.slice(1)}
+                            </span>
+                        </div>
+                        <button class="btn" id="change-file-btn">Change File</button>
+                    `;
+                    
+                    document.getElementById('change-file-btn').addEventListener('click', function() {
+                        fileInput.click();
+                    });
+                }
+            });
+            
+            // Upload button
+            uploadBtn.addEventListener('click', function() {
+                if (!isLoggedIn) {
+                    showToast('Please login first', true);
+                    return;
+                }
+                
+                const title = document.getElementById('code-title').value;
+                const creator = document.getElementById('creator-name').value || currentUser.username;
+                const codeContent = document.getElementById('code-input').value;
+                const selectedLang = document.querySelector('.lang-option.active').getAttribute('data-lang');
+                
+                if (document.getElementById('paste-option').classList.contains('active')) {
+                    if (!title) {
+                        showToast('Please enter a title for your code', true);
+                        return;
+                    }
+                    
+                    if (!codeContent) {
+                        showToast('Please paste your code', true);
+                        return;
+                    }
+                }
+                
+                // Simulate upload
+                showToast('Code berhasil di-upload!');
+                
+                // Create new code object
+                const newCode = {
+                    id: sampleCodes.length + 1,
+                    title: title || `Scraped Code ${sampleCodes.length + 1}`,
+                    creator: creator,
+                    date: new Date().toISOString().split('T')[0],
+                    language: selectedLang,
+                    codePreview: "View All Code",
+                    jsonData: {
+                        "title": title || `Scraped Code ${sampleCodes.length + 1}`,
+                        "creator": creator,
+                        "language": selectedLang.charAt(0).toUpperCase() + selectedLang.slice(1),
+                        "lines": Math.floor(Math.random() * 200) + 50,
+                        "description": "Newly uploaded scraped code",
+                        "lastExecuted": new Date().toISOString(),
+                        "successRate": "95%"
+                    }
+                };
+                
+                // Reset form
+                if (document.getElementById('paste-option').classList.contains('active')) {
+                    document.getElementById('code-title').value = '';
+                    document.getElementById('code-input').value = '';
+                    
+                    // Switch back to file upload
+                    uploadOptions.forEach(opt => opt.classList.remove('active'));
+                    document.getElementById('file-option').classList.add('active');
+                    uploadBox.style.display = 'block';
+                    pasteSection.style.display = 'none';
+                    
+                    // Reset upload box
+                    uploadBox.innerHTML = `
+                        <div class="upload-icon">
+                            <i class="fas fa-file-upload"></i>
+                        </div>
+                        <h3>Upload File</h3>
+                        <p>Drag & drop file Anda di sini atau klik untuk memilih</p>
+                        <input type="file" id="file-input" style="display: none;">
+                        <button class="btn" id="browse-btn">Browse Files</button>
+                        <p style="margin-top: 1rem; font-size: 0.9rem; color: var(--text-light);">Format yang didukung: .txt, .js, .py, .html, .json</p>
+                    `;
+                    
+                    // Reattach event listeners
+                    document.getElementById('browse-btn').addEventListener('click', function() {
+                        fileInput.click();
+                    });
+                }
+                
+                // Add to sample codes
+                sampleCodes.unshift(newCode);
+                
+                // Update total scrape count
+                const currentCount = parseInt(totalScrapeElement.textContent);
+                totalScrapeElement.textContent = currentCount + 1;
+                
+                // Navigate to view scrape page
+                navLinks.forEach(l => l.classList.remove('active'));
+                document.querySelector('[data-page="view-scrape"]').classList.add('active');
+                
+                pages.forEach(page => page.classList.remove('active'));
+                document.getElementById('view-scrape').classList.add('active');
+                
+                // Regenerate code cards
+                generateCodeCards(document.querySelector('.filter-btn.active').getAttribute('data-filter'));
+            });
+            
+            // JSON Modal
+            closeModal.addEventListener('click', function() {
+                jsonModal.classList.remove('active');
+            });
+            
+            // Close modal when clicking outside
+            jsonModal.addEventListener('click', function(e) {
+                if (e.target === jsonModal) {
+                    jsonModal.classList.remove('active');
+                }
+            });
+            
+            // Logout buttons
+            logoutBtns.forEach(btn => {
+                btn.addEventListener('click', function() {
+                    isLoggedIn = false;
+                    currentUser = null;
+                    localStorage.removeItem('codestore_user');
+                    showToast('Logged out successfully');
+                    showAuth();
+                });
+            });
+        }
+
+        // ====================
+        // HELPER FUNCTIONS
+        // ====================
+        
+        function formatDate(dateString) {
+            const options = { year: 'numeric', month: 'short', day: 'numeric' };
+            return new Date(dateString).toLocaleDateString('en-US', options);
+        }
+
+        function copyCode(id) {
+            const code = sampleCodes.find(c => c.id === id);
+            const textToCopy = JSON.stringify(code.jsonData, null, 2);
+            
+            navigator.clipboard.writeText(textToCopy)
+                .then(() => {
+                    showToast('JSON copied to clipboard');
+                })
+                .catch(err => {
+                    console.error('Failed to copy: ', err);
+                    showToast('Failed to copy to clipboard', true);
+                });
+        }
+
+        function downloadCode(id) {
+            const code = sampleCodes.find(c => c.id === id);
+            const textToDownload = JSON.stringify(code.jsonData, null, 2);
+            const blob = new Blob([textToDownload], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `${code.title.replace(/\s+/g, '_')}.json`;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+            
+            showToast('File downloaded successfully');
+        }
+
+        function showJson(id) {
+            const code = sampleCodes.find(c => c.id === id);
+            jsonDisplay.textContent = JSON.stringify(code.jsonData, null, 2);
+            jsonModal.classList.add('active');
+        }
+
+        function showToast(message, isError = false) {
+            toastMessage.textContent = message;
+            toast.classList.remove('error', 'warning');
+            
+            if (isError) {
+                toast.classList.add('error');
+                toast.querySelector('i').className = 'fas fa-exclamation-circle';
+            } else {
+                toast.classList.add('warning');
+                toast.querySelector('i').className = 'fas fa-check-circle';
+            }
+            
+            toast.classList.add('active');
+            
+            setTimeout(() => {
+                toast.classList.remove('active');
+            }, 3000);
+        }
+
+        function showError(elementId, message) {
+            const element = document.getElementById(elementId);
+            element.textContent = message;
+            element.classList.add('active');
+        }
+
+        function clearErrors(formType) {
+            const errorElements = document.querySelectorAll(`#${formType}-form .form-error`);
+            errorElements.forEach(el => {
+                el.textContent = '';
+                el.classList.remove('active');
+            });
+        }
+
+        function isValidEmail(email) {
+            const re = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+            return re.test(email);
+        }
+    </script>
+    
+    <!-- SUPABASE INTEGRATION -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script>
+        // Initialize Supabase
+        const supabaseUrl = 'YOUR_SUPABASE_URL';
+        const supabaseKey = 'YOUR_SUPABASE_ANON_KEY';
+        const supabase = window.supabase.createClient(supabaseUrl, supabaseKey);
+
+        // Update login function
+        async function loginUser(email, password) {
+            const { data, error } = await supabase.auth.signInWithPassword({
+                email: email,
+                password: password
+            });
+            
+            if (error) {
+                showToast(error.message, true);
+                return false;
+            }
+            
+            currentUser = data.user;
+            isLoggedIn = true;
+            showToast('Login successful!');
+            showApp();
+            return true;
+        }
+
+        // Update register function
+        async function registerUser(email, password, username) {
+            const { data, error } = await supabase.auth.signUp({
+                email: email,
+                password: password,
+                options: {
+                    data: {
+                        username: username
+                    }
+                }
+            });
+            
+            if (error) {
+                showToast(error.message, true);
+                return false;
+            }
+            
+            showToast('Registration successful! Please check your email.');
+            return true;
+        }
+
+        // Upload code to Supabase
+        async function uploadCodeToSupabase(codeData) {
+            const { data: user } = await supabase.auth.getUser();
+            
+            if (!user) {
+                showToast('Please login first', true);
+                return false;
+            }
+            
+            const { error } = await supabase
+                .from('codes')
+                .insert({
+                    user_id: user.id,
+                    title: codeData.title,
+                    language: codeData.language,
+                    code_content: codeData.content,
+                    description: codeData.description || ''
+                });
+            
+            if (error) {
+                showToast(error.message, true);
+                return false;
+            }
+            
+            showToast('Code uploaded successfully!');
+            return true;
+        }
+
+        // Fetch user codes from Supabase
+        async function fetchUserCodes() {
+            const { data: user } = await supabase.auth.getUser();
+            
+            if (!user) return [];
+            
+            const { data, error } = await supabase
+                .from('codes')
+                .select('*')
+                .eq('user_id', user.id)
+                .order('created_at', { ascending: false });
+            
+            if (error) {
+                console.error('Error fetching codes:', error);
+                return [];
+            }
+            
+            return data;
+        }
+    </script>
+</body>
+</html>
